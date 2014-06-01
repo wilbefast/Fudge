@@ -1,25 +1,9 @@
-solid.lua
-=========
+Fudge
+=====
 
-Attempt at a crappy frameworky thingy for Löve2d
+An automatic texture packer for Löve2D
 
+Feed it a folder full of images and it will automagically generate a texture atlas and quads.
+It can also export the generated data to reduce load times in production mode.
 
-Needz
------
-
-> Generic way of dealing with timestepped physics
-> Animation package that can use spritesheets or named pngs
-
-
-
-Conventions and system
-----------------------
-
-If this is going to be useful for other projects, then I need to be consistent.
-
-
-
-
-
-solidstepper
-------------
+Planned features include JSON exports so generated data can be used in other engines.
