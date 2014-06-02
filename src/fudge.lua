@@ -1,17 +1,31 @@
 local fudge_mt = {}
 local piece_mt = {}
+local anim_mt = {}
 local fudge = {}
 
+fudge.anim_prefix = "ani_"
+
 local old_draw = love.graphics.draw
-local monkey_draw = function(im, ...)
+local monkey_draw
+local anim_draw = function(anim, frame, ...)
+	monkey_draw(anim:getPiece(frame), ...)
+end
+
+monkey_draw = function(im, ...)
 	if fudge.current and type(im)=="string" then
 		--Get associate and draw it
-		local fud = fudge.current:getPiece(im)
-		old_draw(fud.img, fud.quad, ...)
+		if im:sub(1,fudge.anim_prefix:len())==fudge.anim_prefix then
+			monkey_draw(fudge.current:getAnimation(im), ...)
+		else
+			local fud = fudge.current:getPiece(im)
+			old_draw(fud.img, fud.quad, ...)
+		end
 	elseif type(im)=="table" and im.img and im.quad then
 		old_draw(im.img, im.quad, ...)
 	elseif type(im)=="table" and im.batch then
 		old_draw(im.batch)
+	elseif type(im)=="table" and im.framerate then
+		anim_draw(im, math.floor(love.timer.getTime()*im.framerate), ...)
 	else
 		old_draw(im, ...)
 	end
@@ -300,6 +314,7 @@ function fudge.set(option, value)
 		for k,v in pairs(option) do
 			fudge.set(k, v)
 		end
+		return
 	end
 	;({
 		current = function(v)
@@ -311,6 +326,13 @@ function fudge.set(option, value)
 			else
 				love.graphics.draw = old_draw
 			end
+		end,
+		anim_prefix = function(v)
+			local old_prefix = fudge.anim_prefix
+			fudge.anim_prefix = v
+			--[[
+				Do prefix fixing here
+			]]
 		end
 	})[option](value)
 end
@@ -325,13 +347,25 @@ function fudge_mt:getPiece(name)
 	return self.pieces[name]
 end
 
-function fudge_mt:chopToAnimation(name, number, options)
+function fudge_mt:getAnimation(name, frame)
+	if frame then
+		return self:getAnimation(name):getPiece(frame)
+	else
+		if not self.anim[name] then
+			error("There is no animation named \""..name.."\"")
+		end
+		return self.anim[name]
+	end
+end
+
+function fudge_mt:chopToAnimation(piecename, number, options)
+	local options = options or {}
 	local numlen = (""..number):len()
-	local piece = self:getPiece(name)
+	local piece = self:getPiece(piecename)
 	local stepsize = piece:getWidth()/number
 	local animation = {}
 	for i=1,number do
-		self.pieces[name.."_"..string.format("%0"..numlen.."d", i)] = {
+		self.pieces[piecename.."_"..string.format("%0"..numlen.."d", i)] = {
 			img = self.image,
 			quad = love.graphics.newQuad(
 				piece.x+(i-1)*stepsize,
@@ -341,15 +375,19 @@ function fudge_mt:chopToAnimation(name, number, options)
 				self.width,
 				self.height)
 		}
-		table.insert(animation, name.."_"..string.format("%0"..numlen.."d", i))
+		table.insert(animation, piecename.."_"..string.format("%0"..numlen.."d", i))
 	end
-	self:animate(name, animation)
+	self:animate((options.name or piecename), animation, options)
 end
 
-function fudge_mt:animate(name, frames)
-	self.anim[name] = {}
+function fudge_mt:animate(name, frames, options)
+	local options = options or {}
+	local prefix = options.prefix or fudge.anim_prefix
+	self.anim[prefix..name] = setmetatable({
+		framerate = options.framerate or 10
+	}, {__index = anim_mt})
 	for i,v in ipairs(frames) do
-		table.insert(self.anim[name], self:getPiece(v))
+		table.insert(self.anim[prefix..name], self:getPiece(v))
 	end
 end
 
@@ -368,12 +406,12 @@ end
 
 function fudge_mt:export(name, options)
 	local options = options or {}
-	local imageExtension = options.imageExtension or "png"
-	self.image:getData():encode(name.."."..imageExtension)
+	local image_extension = options.image_extension or "png"
+	self.image:getData():encode(name.."."..image_extension)
 	local string = "local f = {"
 	string = string.."width="..self.width..","
 	string = string.."height="..self.height..","
-	string = string.."image=love.graphics.newImage('"..name.."."..imageExtension.."')}\n"
+	string = string.."image=love.graphics.newImage('"..name.."."..image_extension.."')}\n"
 	string = string.."f.batch=love.graphics.newSpriteBatch(f.image, "..self.batch:getBufferSize()..")\n"
 	string = string.."f.pieces = {}\n"
 	for k,v in pairs(self.pieces) do
@@ -385,6 +423,7 @@ function fudge_mt:export(name, options)
 		string = string.."w="..v.w..","
 		string = string.."h="..v.h.."}\n"
 	end
+	string = string.."f.anim = {}\n"
 	string = string.."return f"
 	love.filesystem.write(name..".lua", string)
 end
@@ -407,6 +446,10 @@ end
 
 function piece_mt:getHeight()
 	return self.h
+end
+
+function anim_mt:getPiece(frame)
+	return self[((frame-1)%#self)+1]
 end
 
 return fudge

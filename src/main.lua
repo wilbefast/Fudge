@@ -1,18 +1,20 @@
 function love.load(arg)
 	fudge = require("fudge")
-	f = fudge.new("images",{
-		npot = true
-		})
-	f:export("souls", {imageExtension = "png"})
-	--f = fudge.import("souls")
+	if __DEBUG__ then
+		f = fudge.new("images",{
+			npot = false
+			})
+		f:export("souls", {image_extension = "png", meta_format="lua"})
+	else
+		f = fudge.import("souls")
+	end
 	f:clearb()
-	fudge.set("current", f)
-	fudge.set("monkey", true)
-
-	f:chopToAnimation("unit_blue_imp_move", 10)
-	frame = 1
-	frametime = 0
-	position = 0
+	fudge.set({
+		current = f,
+		monkey = true
+	})
+	f:rename("unit_blue_imp_move", "blueRun")
+	f:chopToAnimation("blueRun", 10, {framerate = 24})
 
 	local tile = f:getPiece("tiles_floor")
 	for i=0,love.graphics.getWidth()+tile:getWidth(),tile:getWidth() do
@@ -23,18 +25,6 @@ function love.load(arg)
 
 end
 
-function love.update( dt )
-	frametime = frametime - dt
-	while frametime<=dt do
-		frame = (frame%10)+1
-		frametime = frametime+(1/20)
-	end
-	position = position+dt*100
-	if position>250 then
-		position=-250
-	end
-end
-
 function love.draw()
 	love.graphics.draw(f)
 	local logo = f:getPiece("logo")
@@ -43,14 +33,15 @@ function love.draw()
 		math.floor(love.graphics.getHeight()/2-logo:getHeight()/2+math.sin(love.timer.getTime()*2)*5)
 	)
 	love.graphics.draw("unit_blue_soul",
-		love.graphics.getWidth()/2+position-20,
+		-25+(-love.timer.getTime()*100)%(love.graphics.getWidth()+50)-50,
 		love.graphics.getHeight()/2+30+math.sin(love.timer.getTime()*10)*3,
-		0,0.5,0.5
+		0,-0.5,0.5
 		)
 	love.graphics.draw(
-		f.anim["unit_blue_imp_move"][frame],
-		love.graphics.getWidth()/2+position,
-		love.graphics.getHeight()/2+30
+		"ani_blueRun",
+		-25+(-love.timer.getTime()*100)%(love.graphics.getWidth()+50),
+		love.graphics.getHeight()/2+30,
+		0, -1, 1
 	)
 
 end

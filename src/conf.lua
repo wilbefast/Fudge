@@ -1,5 +1,5 @@
 function love.conf(t)
-    --__DEBUG__ = true
+    __DEBUG__ = true
 
     t.identity = "fudge"                   -- The name of the save directory (string)
     t.version = "0.9.0"                -- The LÖVE version this game was made for (string)
@@ -7,8 +7,8 @@ function love.conf(t)
 
     t.window.title = "lazr - preAlpha"        -- The window title (string)
     t.window.icon = nil                -- Filepath to an image to use as the window's icon (string)
-    t.window.width = 400               -- The window width (number)
-    t.window.height = 150              -- The window height (number)
+    t.window.width = 800               -- The window width (number)
+    t.window.height = 600              -- The window height (number)
     t.window.borderless = true        -- Remove all border visuals from the window (boolean)
     t.window.resizable = false         -- Let the window be user-resizable (boolean)
     t.window.minwidth = 1              -- Minimum window width if the window is resizable (number)
