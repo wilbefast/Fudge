@@ -392,7 +392,7 @@ function fudge_mt:animate(name, frames, options)
 end
 
 function fudge_mt:addb(piece, ...)
-	piece = type(piece)=="string" and self:get(piece) or piece
+	piece = type(piece)=="string" and self:getPiece(piece) or piece
 	self.batch:add(piece.quad, ...)
 end
 
