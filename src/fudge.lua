@@ -400,6 +400,18 @@ function fudge_mt:clearb()
 	self.batch:clear()
 end
 
+function fudge_mt:setColorb(r, g, b, a)
+	self.batch:setColor(r, g, b, a)
+end
+
+function fudge_mt:setWhiteb(a)
+	self.batch:setColor(255, 255, 255, a or 255)
+end
+
+function fudge_mt:setBlackb(a)
+	self.batch:setColor(0, 0, 0, a or 255)
+end
+
 function fudge_mt:setImageFilter(...)
 	self.image:setFilter(...)
 end
