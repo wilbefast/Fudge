@@ -339,6 +339,18 @@ end
 
 fudge.draw = monkey_draw
 
+function fudge.addb(...)
+	fudge.current:addb(...)
+end
+
+function fudge.setColorb(...)
+	fudge.current:setColorb(...)
+end
+
+function fudge.setWhiteb()
+	fudge.current:setWhiteb()
+end
+
 function fudge_mt:getPiece(name)
 	if not self.pieces[name] then
 		error("There is no piece named \""..name.."\"")
