@@ -408,6 +408,19 @@ function fudge_mt:addb(piece, ...)
 	self.batch:add(piece.quad, ...)
 end
 
+function fudge_mt:addb_centered(piece, x, y, r)
+	piece = type(piece)=="string" and self:getPiece(piece) or piece
+
+	local q = piece.quad
+	local _, __, w, h = q:getViewport()
+
+	self.batch:add(q, x, y, r, 1, 1, w*0.5, h*0.5)
+
+
+
+
+end
+
 function fudge_mt:clearb()
 	self.batch:clear()
 end
