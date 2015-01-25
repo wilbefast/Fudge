@@ -81,10 +81,14 @@ end
 local getAllImages = function(folder)
 	local images = {}
 	for i,v in ipairs(love.filesystem.getDirectoryItems(folder)) do
-		table.insert(images, {
-			name = split(v, ".")[1],
-			tex = love.graphics.newImage(folder.."/"..v)
-		})
+		
+		pcall(function()
+			table.insert(images, {
+
+				name = split(v, ".")[1],
+				tex = love.graphics.newImage(folder.."/"..v)
+			})
+		end)
 		--table.insert(images, love.graphics.newImage(folder.."/"..v))
 		--table.insert(images, love.graphics.newImage(folder.."/"..v))
 	end
