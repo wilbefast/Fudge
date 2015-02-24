@@ -23,7 +23,7 @@ monkey_draw = function(im, ...)
 	elseif type(im)=="table" and im.img and im.quad then
 		old_draw(im.img, im.quad, ...)
 	elseif type(im)=="table" and im.batch then
-		old_draw(im.batch)
+		old_draw(im.batch, ...)
 	elseif type(im)=="table" and im.framerate then
 		anim_draw(im, math.floor(love.timer.getTime()*im.framerate), ...)
 	else
