@@ -81,10 +81,14 @@ end
 local getAllImages = function(folder)
 	local images = {}
 	for i,v in ipairs(love.filesystem.getDirectoryItems(folder)) do
-		table.insert(images, {
-			name = split(v, ".")[1],
-			tex = love.graphics.newImage(folder.."/"..v)
-		})
+		
+		pcall(function()
+			table.insert(images, {
+
+				name = split(v, ".")[1],
+				tex = love.graphics.newImage(folder.."/"..v)
+			})
+		end)
 		--table.insert(images, love.graphics.newImage(folder.."/"..v))
 		--table.insert(images, love.graphics.newImage(folder.."/"..v))
 	end
@@ -207,6 +211,10 @@ function fudge.new(folder, options)
 	local options = options or {}
 	local self = setmetatable({},{__index=fudge_mt})
 	self.images = getAllImages(folder)
+  if #self.images == 0 then
+    print("[fudge] failed to create sprite atlas: folder '" .. folder .. "'' doesn't contain any images")
+    return nil
+  end
 	---[[
 	local maxWidth = 0
 	local area = 0
@@ -406,6 +414,19 @@ end
 function fudge_mt:addb(piece, ...)
 	piece = type(piece)=="string" and self:getPiece(piece) or piece
 	self.batch:add(piece.quad, ...)
+end
+
+function fudge_mt:addb_centered(piece, x, y, r)
+	piece = type(piece)=="string" and self:getPiece(piece) or piece
+
+	local q = piece.quad
+	local _, __, w, h = q:getViewport()
+
+	self.batch:add(q, x, y, r, 1, 1, w*0.5, h*0.5)
+
+
+
+
 end
 
 function fudge_mt:clearb()
