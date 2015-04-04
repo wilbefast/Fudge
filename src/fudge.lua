@@ -198,7 +198,17 @@ local pack = function(t, mx)
 end
 
 function fudge.import(name)
-	local self = require(name)
+
+	-- the 'name' may contain a path
+	local filepath = ""
+	local index = string.find(name, "/[^/]*$")
+	if index then
+		filepath = string.sub(name, 1, index)
+	end
+
+	local do_load_batch = require(name)
+	local self = do_load_batch(filepath)
+
 	setmetatable(self, {__index=fudge_mt})
 	for k,v in pairs(self.pieces) do
 		setmetatable(v, {__index=piece_mt})
@@ -453,10 +463,12 @@ function fudge_mt:export(name, options)
 	local options = options or {}
 	local image_extension = options.image_extension or "png"
 	self.image:getData():encode(name.."."..image_extension)
-	local string = "local f = {"
+	string = "return function(path)\n"
+	string = string.. "local file = (path or \"\").. \""..name.."."..image_extension.."\"\n"
+	string = string.."local f = {"
 	string = string.."width="..self.width..","
 	string = string.."height="..self.height..","
-	string = string.."image=love.graphics.newImage('"..name.."."..image_extension.."')}\n"
+	string = string.."image=love.graphics.newImage(file)}\n"
 	string = string.."f.batch=love.graphics.newSpriteBatch(f.image, "..self.batch:getBufferSize()..")\n"
 	string = string.."f.pieces = {}\n"
 	for k,v in pairs(self.pieces) do
@@ -469,7 +481,8 @@ function fudge_mt:export(name, options)
 		string = string.."h="..v.h.."}\n"
 	end
 	string = string.."f.anim = {}\n"
-	string = string.."return f"
+	string = string.."return f\n"
+	string = string.."end"
 	love.filesystem.write(name..".lua", string)
 end
 
